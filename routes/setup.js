@@ -150,13 +150,14 @@ router.post("/registerEvent", async (req, res) => {
                          * 4. or appevents or apperrors append in the same day with appId and userId
                          */
 
-                        recordEvent(res, connection,guestId,email, appId, {
+                        recordEvent(res, connection,guestId,email, appId,userData.quota,{
                             "country": country,
                             "device": device,
                             "isReturning": isReturning,
                             "ip": useripAddress
                           }, appSession, appEvents, appErrors
                         );
+
 
 
 
@@ -203,7 +204,7 @@ router.post("/registerEvent", async (req, res) => {
 
 });
 
-function recordEvent(res, connection,guestId,userEmail, appId, appVisitordetail, appSession, appEvents, appErrors) {
+function recordEvent(res, connection,guestId,userEmail, appId,currentQuota,appVisitordetail, appSession, appEvents, appErrors) {
 
     let currentDate = new Date();
     // Get the components of the date
@@ -217,6 +218,12 @@ function recordEvent(res, connection,guestId,userEmail, appId, appVisitordetail,
             [userEmail, appId, new Date().toISOString().slice(0, 19).replace('T', ' '),guestId,appVisitordetail],
             function (err, results, fields) {
                 if (results != null) {
+                    //--
+                    /***
+                     * since a session created for a visitor with given guestId, so will dedcut one from quota
+                     */
+                    //--
+                    updateQuota(connection,appId,userEmail,currentQuota); //updating quota 
                     return res.json(new ApiResponse(200, `visitor record created`,{
                         "guestId":guestId
                     }));
@@ -468,14 +475,14 @@ function recordEvent(res, connection,guestId,userEmail, appId, appVisitordetail,
                         prevAppErrors=JSON.parse(prevAppErrors);
 
                         if(Object.keys(appErrors)[0] in prevAppErrors){
-
+                            
+                            
                             let errorForPage=prevAppErrors[Object.keys(appErrors)[0]];
                             let newError=appErrors[Object.keys(appErrors)[0]];
-                            if(newError.length>1){
-                                return res.json(new ApiResponse(401, `Please send only single error for a page at a time`));
-                            }
-                            prevAppErrors[Object.keys(appErrors)[0]]=errorForPage.concat(newError);
-
+                            prevAppErrors[Object.keys(appErrors)[0]]=`${errorForPage} ,\n${newError}`;
+                            console.log("app errors");
+                            console.log(prevAppErrors);
+                           
                             storeError(res,guestId,prevAppErrors,connection,userEmail,appId,`${year}-${month}-${day}`);
 
 
@@ -518,6 +525,25 @@ function recordEvent(res, connection,guestId,userEmail, appId, appVisitordetail,
 
 }
 
+function updateQuota(connection,appId,userEmail,currentQuota){
+     let remQuota= currentQuota-1;
+     if(remQuota<0){
+        remQuota=0;
+     }
+
+     connection.execute(
+        `UPDATE appconfig SET quota =? WHERE userEmail=? && AppId=?`,
+        [remQuota,userEmail,appId],
+        async function (err, results, fields) {
+            console.log(err);
+            console.log(results);
+            console.log(fields);   
+        }
+    );
+
+
+
+}
 
 function storeError(res,guestId,appError,connection,userEmail,appId,recordDateString){
     connection.execute(
