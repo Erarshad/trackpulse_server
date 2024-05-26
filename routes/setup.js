@@ -141,6 +141,20 @@ router.post("/registerEvent", async (req, res) => {
                 //definately one result will come
                 let userData = results[0];
                 if (new Date() <= new Date(userData.Expiry)) {
+
+                    if(userData.quota<=0){
+                        let planType=userData.plan;
+                        let choosenPlan= plan[planType];
+                        let session_quota=choosenPlan["sessions_perday"];
+                        /**
+                         * 1. update the quota if quota is <=0 
+                         */
+
+                        setQuota(connection,appId,email,session_quota);
+
+
+                    }
+
                     if (userData.quota > 0) {
                         //1. register the event and update the quota 
                         /**
@@ -520,6 +534,29 @@ function recordEvent(res, connection,guestId,userEmail, appId,currentQuota,appVi
     }
 
 
+
+
+
+}
+
+
+
+
+    
+    
+
+
+
+function setQuota(connection,appId,userEmail,quota){
+     connection.execute(
+        `UPDATE appconfig SET quota =?, quotaAddedAt=?  WHERE userEmail=? && AppId=?`,
+        [quota, new Date().toISOString().slice(0, 19).replace('T', ' '),userEmail,appId],
+        async function (err, results, fields) {
+            console.log(err);
+            console.log(results);
+            console.log(fields);   
+        }
+    );
 
 
 
