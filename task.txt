@@ -1,0 +1,2 @@
+1) have to create cron job which delete data from mysql after 15 days of expiration of account;
+2) have to create a cron job which will send email to all the expired accounts

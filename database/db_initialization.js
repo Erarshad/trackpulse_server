@@ -1,5 +1,6 @@
 const mySQL = require("mysql2");
 const { connectToDB } = require("./db_driver");
+const {scheduleMarkAndSweep}=require("./sql_event_cron");
 
 async function initDBSetup() {
     const connection = await connectToDB();
@@ -78,12 +79,16 @@ async function initDBSetup() {
     }
 
 
+   // scheduleMarkAndSweep(connection);
+
 
 
 
 
 
 }
+
+
 
 module.exports = {
     initDBSetup
