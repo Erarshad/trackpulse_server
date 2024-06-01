@@ -17,7 +17,7 @@ function scheduleMarkAndSweep(connection){
             [],
             function (err, results, fields) {
                 console.log((err?.errno ?? "") + " " + (err?.sqlMessage ?? ""));
-                console.log(results); // results contains rows returned by server
+                console.log(results); // results contains rows returned by server 
                 console.log(fields); // fields contains extra meta data about results, if available
             }
             /***
