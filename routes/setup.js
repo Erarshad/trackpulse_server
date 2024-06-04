@@ -148,11 +148,14 @@ router.post("/registerEvent", async (req, res) => {
                         let planType=userData.plan;
                         let choosenPlan= plan[planType];
                         let session_quota=choosenPlan["sessions_perday"];
+                        let quotaWasAdded=userData.quotaAddedAt;
                         /**
                          * 1. update the quota if quota is <=0 
                          */
-
-                        setQuota(connection,appId,email,session_quota);
+                        if(new Date(quotaWasAdded)<new Date() ){
+                          //means quota was added before not today 
+                          setQuota(connection,appId,email,session_quota);
+                        }
 
 
                     }
