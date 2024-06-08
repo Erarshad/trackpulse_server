@@ -12,7 +12,7 @@ router.post("/fetchApps", async (req, res) => {
     const connection = await connectToDB();
     let email=req.body.email??"";
     connection.execute(
-        `select * from appConfig where userEmail=?;`,
+        `select * from appConfig INNER JOIN user ON appConfig.userEmail=user.email where appConfig.userEmail=?;`,
         [email],
         function (err, results, fields) {
             console.log((err?.errno ?? "") + " " + (err?.sqlMessage ?? ""));
