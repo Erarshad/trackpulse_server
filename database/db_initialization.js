@@ -32,7 +32,8 @@ async function initDBSetup() {
                 userEmail VARCHAR(500)  NOT NULL,
                 quota INT NOT NULL,
                 quotaAddedAt DATETIME NOT NULL,
-                URL TEXT NOT NULL
+                URL TEXT NOT NULL,
+                appName TEXT NOT NULL
             );
             `,
             [],

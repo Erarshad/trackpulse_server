@@ -61,6 +61,7 @@ router.post("/addApp", async (req, res) => {
     let appId = uuidv4();
     let userEmail = req.body.userEmail;
     let webURL = req.body.url;
+    let appName=req.body.appName;
     let perdaySession = 0;
     await connection.execute(
         `select * from user where email=?`,
@@ -69,8 +70,8 @@ router.post("/addApp", async (req, res) => {
             let userDetail = results[0];
             perdaySession = plan[userDetail.plan].sessions_perday;
             connection.execute(
-                "INSERT INTO appconfig(AppId,userEmail, quota, quotaAddedAt, URL) VALUES (?,?,?,?,?);",
-                [appId, userEmail, perdaySession, new Date().toISOString().slice(0, 19).replace('T', ' '), webURL],
+                "INSERT INTO appconfig(AppId,userEmail, quota, quotaAddedAt, URL,appName) VALUES (?,?,?,?,?,?);",
+                [appId, userEmail, perdaySession, new Date().toISOString().slice(0, 19).replace('T', ' '), webURL, appName],
                 function (err, results, fields) {
                     if (err?.errno ?? 0 === 1062) {
                         return res.json(new ApiResponse(200, `${appId} already exist in record`, ""))
