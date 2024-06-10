@@ -14,18 +14,18 @@ router.post("/user", async (req, res) => {
     let email = req.body.email;
     let name = req.body.name;
     let planId = req.body.planId;
-    let expiry = new Date();
+    let expiry = onlyDate();
     const userPlan = plan[planId];
     console.log(userPlan);
     if (userPlan.type === 'free') {
-      //  expiry = new Date("January 1, 2099 01:15:00");//means lifetime
+      //  expiry = onlyDate("January 1, 2099 01:15:00");//means lifetime
       //15 days free, plan 
-        expiry = new Date(expiry.setDate(expiry.getMonth() + 15));
+        expiry = onlyDate(expiry.setDate(expiry.getMonth() + 15));
 
     } else {
         let months = userPlan.validity_in_month;
         //current date + months
-        expiry = new Date(expiry.setMonth(expiry.getMonth() + months));
+        expiry = onlyDate(expiry.setMonth(expiry.getMonth() + months));
         console.log(expiry);
     }
 
@@ -34,7 +34,7 @@ router.post("/user", async (req, res) => {
     connection.execute(
         `INSERT INTO user (email,Name, plan, createdAt, Expiry)
             VALUES (?,?,?,?,?);`,
-        [email, name, planId, new Date().toISOString().slice(0, 19).replace('T', ' '), expiry.toISOString().slice(0, 19).replace('T', ' ')],
+        [email, name, planId, onlyDate().toISOString().slice(0, 19).replace('T', ' '), expiry.toISOString().slice(0, 19).replace('T', ' ')],
         function (err, results, fields) {
             if (err?.errno ?? 0 === 1062) {
                 return res.json(new ApiResponse(200, `${email} already exist in record`, ""))
@@ -71,7 +71,7 @@ router.post("/addApp", async (req, res) => {
             perdaySession = plan[userDetail.plan].sessions_perday;
             connection.execute(
                 "INSERT INTO appconfig(AppId,userEmail, quota, quotaAddedAt, URL,appName) VALUES (?,?,?,?,?,?);",
-                [appId, userEmail, perdaySession, new Date().toISOString().slice(0, 19).replace('T', ' '), webURL, appName],
+                [appId, userEmail, perdaySession, onlyDate().toISOString().slice(0, 19).replace('T', ' '), webURL, appName],
                 function (err, results, fields) {
                     if (err?.errno ?? 0 === 1062) {
                         return res.json(new ApiResponse(200, `${appId} already exist in record`, ""))
@@ -110,7 +110,7 @@ router.post("/registerEvent", async (req, res) => {
     let country = req.body.country;
     let device = req.body.device;
     let isReturning = req.body.isReturning;
-    let currentDateTime = new Date();
+    let currentDateTime = onlyDate();
     let useripAddress = req.ip.includes(':') ? req.ip.split(':').pop() : req.ip;
     let appSession = req.body.appSession;
     let appEvents = req.body.appEvents;
@@ -143,7 +143,7 @@ router.post("/registerEvent", async (req, res) => {
             if (results != null && results.length > 0) {
                 //definately one result will come
                 let userData = results[0];
-                if (new Date() <= new Date(userData.Expiry)) {
+                if (onlyDate() <= onlyDate(userData.Expiry)) {
 
                     if(userData.quota<=0){
                         let planType=userData.plan;
@@ -153,7 +153,7 @@ router.post("/registerEvent", async (req, res) => {
                         /**
                          * 1. update the quota if quota is <=0 
                          */
-                        if(new Date(quotaWasAdded)<new Date() ){
+                        if(onlyDate(quotaWasAdded)<onlyDate() ){
                           //means quota was added before not today 
                           setQuota(connection,appId,email,session_quota);
                         }
@@ -226,7 +226,7 @@ router.post("/registerEvent", async (req, res) => {
 
 function recordEvent(res, connection,guestId,userEmail, appId,currentQuota,appVisitordetail, appSession, appEvents, appErrors) {
 
-    let currentDate = new Date();
+    let currentDate = onlyDate();
     // Get the components of the date
     let year = currentDate.getFullYear();
     let month = (currentDate.getMonth() + 1).toString().padStart(2, '0'); // Month is zero-based
@@ -235,7 +235,7 @@ function recordEvent(res, connection,guestId,userEmail, appId,currentQuota,appVi
     if (appSession == null && appEvents == null && appErrors == null) {
         connection.execute(
             "INSERT INTO event(userEmail, AppId, date,guestId,appVisitordetail) VALUES (?,?,?,?,?);",
-            [userEmail, appId, new Date().toISOString().slice(0, 19).replace('T', ' '),guestId,appVisitordetail],
+            [userEmail, appId, onlyDate().toISOString().slice(0, 19).replace('T', ' '),guestId,appVisitordetail],
             function (err, results, fields) {
                 if (results != null) {
                     //--
@@ -556,7 +556,7 @@ function recordEvent(res, connection,guestId,userEmail, appId,currentQuota,appVi
 function setQuota(connection,appId,userEmail,quota){
      connection.execute(
         `UPDATE appconfig SET quota =?, quotaAddedAt=?  WHERE userEmail=? && AppId=?`,
-        [quota, new Date().toISOString().slice(0, 19).replace('T', ' '),userEmail,appId],
+        [quota, onlyDate().toISOString().slice(0, 19).replace('T', ' '),userEmail,appId],
         async function (err, results, fields) {
             console.log(err);
             console.log(results);
