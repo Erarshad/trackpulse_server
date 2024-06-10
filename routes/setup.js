@@ -20,7 +20,7 @@ router.post("/user", async (req, res) => {
     if (userPlan.type === 'free') {
       //  expiry = onlyDate("January 1, 2099 01:15:00");//means lifetime
       //15 days free, plan 
-        expiry = onlyDate(expiry.setDate(expiry.getMonth() + 15));
+        expiry = onlyDate(expiry.setDate(expiry.getMonth() + 20));
 
     } else {
         let months = userPlan.validity_in_month;
