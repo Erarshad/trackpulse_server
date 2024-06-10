@@ -5,6 +5,7 @@ const plan={
         "sessions_perday":200,
         "apps_limit":3,
         "validity_in_month":0
+        //15 days free
     },
     "2":{
         "type":"paid",
