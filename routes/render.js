@@ -7,7 +7,6 @@ const mySQL = require("mysql2");
 const { v4: uuidv4 } = require('uuid');
 const { json } = require('body-parser');
 const router = express.Router();
-const {onlyDate}=require("../utils/only_date");
 
 
 
@@ -77,7 +76,7 @@ router.post("/refreshQuotaForApp", async (req, res) => {
     if(userEmail.length>0 && appId.length>0 && planType.length>0){
         connection.execute(
             `UPDATE appconfig SET quota =?, quotaAddedAt=?  WHERE userEmail=? && AppId=?`,
-            [session_quota, onlyDate().toISOString().slice(0, 19).replace('T', ' '),userEmail,appId],
+            [session_quota, new Date().toISOString().slice(0, 19).replace('T', ' '),userEmail,appId],
             async function (err, results, fields) {
                 console.log(err);
                 console.log(results);

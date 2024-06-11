@@ -7,7 +7,6 @@ const mySQL = require("mysql2");
 const { v4: uuidv4 } = require('uuid');
 const { json } = require('body-parser');
 const router = express.Router();
-const {onlyDate}=require("../utils/only_date");
 
 
 router.post("/user", async (req, res) => {
@@ -15,18 +14,18 @@ router.post("/user", async (req, res) => {
     let email = req.body.email;
     let name = req.body.name;
     let planId = req.body.planId;
-    let expiry = onlyDate();
+    let expiry = new Date();
     const userPlan = plan[planId];
     console.log(userPlan);
     if (userPlan.type === 'free') {
-      //  expiry = onlyDate("January 1, 2099 01:15:00");//means lifetime
+      //  expiry = new Date("January 1, 2099 01:15:00");//means lifetime
       //15 days free, plan 
-        expiry = onlyDate(expiry.setDate(expiry.getMonth() + 20));
+        expiry = new Date(expiry.setDate(expiry.getMonth() + 20));
 
     } else {
         let months = userPlan.validity_in_month;
         //current date + months
-        expiry = onlyDate(expiry.setMonth(expiry.getMonth() + months));
+        expiry = new Date(expiry.setMonth(expiry.getMonth() + months));
         console.log(expiry);
     }
 
@@ -35,7 +34,7 @@ router.post("/user", async (req, res) => {
     connection.execute(
         `INSERT INTO user (email,Name, plan, createdAt, Expiry)
             VALUES (?,?,?,?,?);`,
-        [email, name, planId, onlyDate().toISOString().slice(0, 19).replace('T', ' '), expiry.toISOString().slice(0, 19).replace('T', ' ')],
+        [email, name, planId, new Date().toISOString().slice(0, 19).replace('T', ' '), expiry.toISOString().slice(0, 19).replace('T', ' ')],
         function (err, results, fields) {
             if (err?.errno ?? 0 === 1062) {
                 return res.json(new ApiResponse(200, `${email} already exist in record`, ""))
@@ -72,7 +71,7 @@ router.post("/addApp", async (req, res) => {
             perdaySession = plan[userDetail.plan].sessions_perday;
             connection.execute(
                 "INSERT INTO appconfig(AppId,userEmail, quota, quotaAddedAt, URL,appName) VALUES (?,?,?,?,?,?);",
-                [appId, userEmail, perdaySession, onlyDate().toISOString().slice(0, 19).replace('T', ' '), webURL, appName],
+                [appId, userEmail, perdaySession, new Date().toISOString().slice(0, 19).replace('T', ' '), webURL, appName],
                 function (err, results, fields) {
                     if (err?.errno ?? 0 === 1062) {
                         return res.json(new ApiResponse(200, `${appId} already exist in record`, ""))
@@ -111,7 +110,7 @@ router.post("/registerEvent", async (req, res) => {
     let country = req.body.country;
     let device = req.body.device;
     let isReturning = req.body.isReturning;
-    let currentDateTime = onlyDate();
+    let currentDateTime = new Date();
     let useripAddress = req.ip.includes(':') ? req.ip.split(':').pop() : req.ip;
     let appSession = req.body.appSession;
     let appEvents = req.body.appEvents;
@@ -144,19 +143,22 @@ router.post("/registerEvent", async (req, res) => {
             if (results != null && results.length > 0) {
                 //definately one result will come
                 let userData = results[0];
-                if (onlyDate() <= onlyDate(userData.Expiry)) {
+                if (new Date() <= new Date(userData.Expiry)) {
 
                     if(userData.quota<=0){
-                        let planType=userData.plan;
-                        let choosenPlan= plan[planType];
-                        let session_quota=choosenPlan["sessions_perday"];
-                        let quotaWasAdded=userData.quotaAddedAt;
+                        let planType = userData.plan;
+                        let choosenPlan = plan[planType];
+                        let session_quota = choosenPlan["sessions_perday"];
+                        let quotaWasAdded = new Date(userData.quotaAddedAt);
+                        quotaWasAdded.setHours(0, 0, 0, 0);
+                        let cur_date = new Date();
+                        cur_date.setHours(0, 0, 0, 0);
                         /**
                          * 1. update the quota if quota is <=0 
                          */
-                        if(onlyDate(quotaWasAdded)<onlyDate() ){
-                          //means quota was added before not today 
-                          setQuota(connection,appId,email,session_quota);
+                        if (quotaWasAdded < cur_date) {
+                            //means quota was added before not today 
+                            setQuota(connection, appId, email, session_quota);
                         }
 
 
@@ -227,7 +229,7 @@ router.post("/registerEvent", async (req, res) => {
 
 function recordEvent(res, connection,guestId,userEmail, appId,currentQuota,appVisitordetail, appSession, appEvents, appErrors) {
 
-    let currentDate = onlyDate();
+    let currentDate = new Date();
     // Get the components of the date
     let year = currentDate.getFullYear();
     let month = (currentDate.getMonth() + 1).toString().padStart(2, '0'); // Month is zero-based
@@ -236,7 +238,7 @@ function recordEvent(res, connection,guestId,userEmail, appId,currentQuota,appVi
     if (appSession == null && appEvents == null && appErrors == null) {
         connection.execute(
             "INSERT INTO event(userEmail, AppId, date,guestId,appVisitordetail) VALUES (?,?,?,?,?);",
-            [userEmail, appId, onlyDate().toISOString().slice(0, 19).replace('T', ' '),guestId,appVisitordetail],
+            [userEmail, appId, new Date().toISOString().slice(0, 19).replace('T', ' '),guestId,appVisitordetail],
             function (err, results, fields) {
                 if (results != null) {
                     //--
@@ -557,7 +559,7 @@ function recordEvent(res, connection,guestId,userEmail, appId,currentQuota,appVi
 function setQuota(connection,appId,userEmail,quota){
      connection.execute(
         `UPDATE appconfig SET quota =?, quotaAddedAt=?  WHERE userEmail=? && AppId=?`,
-        [quota, onlyDate().toISOString().slice(0, 19).replace('T', ' '),userEmail,appId],
+        [quota, new Date().toISOString().slice(0, 19).replace('T', ' '),userEmail,appId],
         async function (err, results, fields) {
             console.log(err);
             console.log(results);
