@@ -1,4 +1,4 @@
-export function onlyDate(date) {
+function onlyDate(date) {
     if (date != null) {
         if(typeof date == Date){
             const d= date;
@@ -20,3 +20,8 @@ export function onlyDate(date) {
     }
 
 }
+
+module.exports={
+    onlyDate
+}
+
