@@ -8,20 +8,23 @@ const { v4: uuidv4 } = require('uuid');
 const { json } = require('body-parser');
 const router = express.Router();
 
-
-router.post("/getCounts", async (req, res) => {
+router.post("/getEvents", async (req, res) => {
     
     const connection = await connectToDB();
-
-    if(req.body.appId!=null){
+    let page=req.body.page;
+    let email=req.body.email;
+    let appId=req.body.appId;
+    let rowsPerPage=10;
+    /**
+     * SELECT * FROM event LIMIT <starting_index>, <quantity of record>;
+     *  ORDER BY date DESC ---means pulling record in descending order
+     */
+    if(page!=null && page>0 && email!=null && appId!=null){
         connection.execute(
-            `SELECT 
-                COUNT(*) AS total_events,
-                COUNT(CASE WHEN date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN 1 ELSE NULL END) AS events_last_7_days,
-                COUNT(CASE WHEN date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE NULL END) AS events_last_30_days
-            FROM event
-            WHERE event.AppId=?;`,
-            [req.body.appId],
+            `SELECT *
+                FROM event Where userEmail=? AND AppId=?
+                ORDER BY date DESC LIMIT ${(page-1)*rowsPerPage}, ${rowsPerPage};`,
+            [email,appId],
             function (err, results, fields) {
                 console.log((err?.errno ?? "") + " " + (err?.sqlMessage ?? ""));
                 console.log(results); // results contains rows returned by server
@@ -33,7 +36,40 @@ router.post("/getCounts", async (req, res) => {
             }
         );
     }else{
-        return res.json(new ApiResponse(404, `Please send proper body i.e appId`));
+        return res.json(new ApiResponse(404, `Please send proper body i.e page,email,appid, page should be greater than 0`));
+
+    }
+   
+
+});
+
+
+
+router.post("/getCounts", async (req, res) => {
+    
+    const connection = await connectToDB();
+
+    if(req.body.appId!=null && req.body.userEmail!=null){
+        connection.execute(
+            `SELECT 
+                COUNT(*) AS total_events,
+                COUNT(CASE WHEN date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN 1 ELSE NULL END) AS events_last_7_days,
+                COUNT(CASE WHEN date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE NULL END) AS events_last_30_days
+            FROM event
+            WHERE event.AppId=? && event.userEmail=?;`,
+            [req.body.appId,req.body.userEmail],
+            function (err, results, fields) {
+                console.log((err?.errno ?? "") + " " + (err?.sqlMessage ?? ""));
+                console.log(results); // results contains rows returned by server
+                console.log(fields); // fields contains extra meta data about results, if available
+                
+                return   res.json(new ApiResponse(200, ``,results));
+
+
+            }
+        );
+    }else{
+        return res.json(new ApiResponse(404, `Please send proper body i.e appId and userEmail`));
 
     }
    
