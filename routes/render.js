@@ -9,12 +9,19 @@ const { json } = require('body-parser');
 const router = express.Router();
 
 
-router.get("/counts", async (req, res) => {
-
+router.post("/getCounts", async (req, res) => {
+    
     const connection = await connectToDB();
+
+    if(req.body.appId!=null){
         connection.execute(
-            `SELECT COUNT(*) FROM event;`,
-            [],
+            `SELECT 
+                COUNT(*) AS total_events,
+                COUNT(CASE WHEN date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN 1 ELSE NULL END) AS events_last_7_days,
+                COUNT(CASE WHEN date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE NULL END) AS events_last_30_days
+            FROM event
+            WHERE event.AppId=?;`,
+            [req.body.appId],
             function (err, results, fields) {
                 console.log((err?.errno ?? "") + " " + (err?.sqlMessage ?? ""));
                 console.log(results); // results contains rows returned by server
@@ -25,6 +32,10 @@ router.get("/counts", async (req, res) => {
 
             }
         );
+    }else{
+        return res.json(new ApiResponse(404, `Please send proper body i.e appId`));
+
+    }
    
 
 });
