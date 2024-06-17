@@ -9,6 +9,26 @@ const { json } = require('body-parser');
 const router = express.Router();
 
 
+router.get("/counts", async (req, res) => {
+
+    const connection = await connectToDB();
+        connection.execute(
+            `SELECT COUNT(*) FROM event;`,
+            [],
+            function (err, results, fields) {
+                console.log((err?.errno ?? "") + " " + (err?.sqlMessage ?? ""));
+                console.log(results); // results contains rows returned by server
+                console.log(fields); // fields contains extra meta data about results, if available
+                
+                return   res.json(new ApiResponse(200, ``,results));
+
+
+            }
+        );
+   
+
+});
+
 
 router.post("/fetchApps", async (req, res) => {
     const connection = await connectToDB();
