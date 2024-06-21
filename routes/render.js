@@ -8,6 +8,42 @@ const { v4: uuidv4 } = require('uuid');
 const { json } = require('body-parser');
 const router = express.Router();
 
+router.post("/getAppEvent", async (req, res) => {
+    
+    const connection = await connectToDB();
+    let email=req.body.userEmail;
+    let appId=req.body.AppId;
+    let guestId=req.body.guestId;
+    /**this api will give events for standalone app for standalone gues*/
+
+    if(email!=null && appId!=null && guestId!=null){
+
+        connection.execute(
+            `select * from event where userEmail=? && AppId=? && guestId=?`,
+            [email,appId,guestId],
+            function (err, results, fields) {
+                console.log((err?.errno ?? "") + " " + (err?.sqlMessage ?? ""));
+                console.log(results); // results contains rows returned by server
+                console.log(fields); // fields contains extra meta data about results, if available
+                
+                
+                return   res.json(new ApiResponse(200, ``,results[0]));
+
+
+            }
+        );
+
+
+       
+    }else{
+        return res.json(new ApiResponse(404, `Please send proper body i.e appId and userEmail & guestId`));
+
+    }
+   
+
+});
+
+
 router.post("/getEvents", async (req, res) => {
     
     const connection = await connectToDB();

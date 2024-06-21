@@ -1,3 +1,5 @@
 1) have to create cron job which delete data from mysql after 15 days of expiration of account;
 2) have to create a cron job which will send email to all the expired accounts
 3) consider a hypothetical scenario, let say user's plan expired and wanted to renew so once user redeem code, it should run a sql query and update the quota of all apps and user's plan so from next day on ward it can work as expected
+4) landing page
+5) login flow 
