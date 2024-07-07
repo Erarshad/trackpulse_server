@@ -3,3 +3,4 @@
 3) consider a hypothetical scenario, let say user's plan expired and wanted to renew so once user redeem code, it should run a sql query and update the quota of all apps and user's plan so from next day on ward it can work as expected
 4) landing page
 5) login flow 
+6) account management

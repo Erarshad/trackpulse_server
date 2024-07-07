@@ -13,7 +13,8 @@ let instanceCache=[];
         host: 'localhost',
         user: 'root',
         password:"Ar1sh@dQ",
-        database: 'trackpulse_db'
+        database: 'trackpulse_db',
+        dateStrings: true
     });
 
     instanceCache.push(connection);
