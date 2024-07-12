@@ -266,8 +266,8 @@ function recordEvent(res, connection,guestId,userEmail, appId,currentQuota,appVi
       
 
         connection.execute(
-            `SELECT * FROM event WHERE Date(date) = ? && guestId=?;`,
-            [`${year}-${month}-${day}`,guestId],
+            `SELECT * FROM event WHERE Date(date) = ? && guestId=? && AppId=? && userEmail=?;`,
+            [`${year}-${month}-${day}`,guestId,appId,userEmail],
             async function (err, results, fields) {
                 if (results.length>0) {
                     let prevdata = results[0];
@@ -322,8 +322,8 @@ function recordEvent(res, connection,guestId,userEmail, appId,currentQuota,appVi
       }
 
        connection.execute(
-           `SELECT * FROM event WHERE Date(date) = ? && guestId=?;`,
-           [`${year}-${month}-${day}`,guestId],
+           `SELECT * FROM event WHERE Date(date) = ? && guestId=? && AppId=? && userEmail=?;`,
+           [`${year}-${month}-${day}`,guestId,appId,userEmail],
            async function (err, results, fields) {
                if (results.length>0) {
                    let prevdata = results[0];
@@ -478,8 +478,8 @@ function recordEvent(res, connection,guestId,userEmail, appId,currentQuota,appVi
         }
 
         connection.execute(
-            `SELECT * FROM event WHERE Date(date) = ? && guestId=?;`,
-            [`${year}-${month}-${day}`,guestId],
+            `SELECT * FROM event WHERE Date(date) = ? && guestId=?  && AppId=? && userEmail=?;`,
+            [`${year}-${month}-${day}`,guestId,appId,userEmail],
             async function (err, results, fields) {
                
                 if (results.length>0) {
@@ -502,7 +502,8 @@ function recordEvent(res, connection,guestId,userEmail, appId,currentQuota,appVi
                             
                             let errorForPage=prevAppErrors[Object.keys(appErrors)[0]];
                             let newError=appErrors[Object.keys(appErrors)[0]];
-                            prevAppErrors[Object.keys(appErrors)[0]]=`${errorForPage} ,\n${newError}`;
+                           // prevAppErrors[Object.keys(appErrors)[0]]=`${errorForPage} ,\n${newError}`;
+                            prevAppErrors[Object.keys(appErrors)[0]]=errorForPage.concat(newError);
                             console.log("app errors");
                             console.log(prevAppErrors);
                            
