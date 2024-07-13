@@ -90,7 +90,8 @@ router.post("/getCounts", async (req, res) => {
             `SELECT 
                 COUNT(*) AS total_events,
                 COUNT(CASE WHEN date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN 1 ELSE NULL END) AS events_last_7_days,
-                COUNT(CASE WHEN date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE NULL END) AS events_last_30_days
+                COUNT(CASE WHEN date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE NULL END) AS events_last_30_days,
+                COUNT(CASE WHEN date >= CURDATE() THEN 1 ELSE NULL END) AS events_today
             FROM event
             WHERE event.AppId=? && event.userEmail=?;`,
             [req.body.appId,req.body.userEmail],
